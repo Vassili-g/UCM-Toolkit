@@ -28,6 +28,10 @@ incomplètes.
   `src/contract/semantics.ts`.
 - Conserver les noms Figma d’origine lorsqu’une valeur est normalisée ou
   renommée.
+- Un élément a une seule source : importer la fonction de son propriétaire au
+  lieu de la recopier. `tests/copiesDeCode.test.ts` refuse une copie de code
+  nouvelle, et sa liste de référence `tests/copiesDeCode.reference.json` ne
+  fait que rétrécir.
 
 Le code du kit s’écrit en français : noms, commentaires et messages. Le format
 publié (noms des champs du contrat) et le README de la CLI s’écrivent en

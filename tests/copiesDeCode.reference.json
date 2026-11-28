@@ -1,0 +1,3138 @@
+[
+  {
+    "empreinte": "af6de3772dbd",
+    "fichiers": [
+      "packages/adapter-typescript/src/parite.mjs",
+      "packages/cli/tests/check.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "af6de3772dbd",
+    "fichiers": [
+      "packages/adapter-typescript/src/parite.mjs",
+      "packages/kit/src/lecteurs/controle-repository.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "af6de3772dbd",
+    "fichiers": [
+      "packages/adapter-typescript/src/parite.mjs",
+      "packages/kit/tests/controleRepository.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "af6de3772dbd",
+    "fichiers": [
+      "packages/adapter-typescript/src/parite.mjs",
+      "packages/kit/tests/verdict-demande.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "ee02a39081b0",
+    "fichiers": [
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs",
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "056a0b3dc1c1",
+    "fichiers": [
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs",
+      "packages/kit/tests/apiPublique.test.mjs"
+    ],
+    "lignes": 16
+  },
+  {
+    "empreinte": "09edcca7a5fb",
+    "fichiers": [
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs",
+      "packages/kit/tests/apiPublique.test.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "16e857cc2833",
+    "fichiers": [
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs",
+      "packages/kit/tests/apiPublique.test.mjs"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "1cb855891448",
+    "fichiers": [
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs",
+      "packages/kit/tests/apiPublique.test.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "548ea80dbc41",
+    "fichiers": [
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs",
+      "packages/kit/tests/apiPublique.test.mjs"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "58d0a97fa9dd",
+    "fichiers": [
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs",
+      "packages/kit/tests/apiPublique.test.mjs"
+    ],
+    "lignes": 15
+  },
+  {
+    "empreinte": "86bf052b2af8",
+    "fichiers": [
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs",
+      "packages/kit/tests/apiPublique.test.mjs"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "9783a8680b9e",
+    "fichiers": [
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs",
+      "packages/kit/tests/apiPublique.test.mjs"
+    ],
+    "lignes": 14
+  },
+  {
+    "empreinte": "eca729dcbb90",
+    "fichiers": [
+      "packages/adapter-typescript/tests/usagesPromis.test.mjs",
+      "packages/kit/tests/apiPublique.test.mjs"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "5aa5c350ebc5",
+    "fichiers": [
+      "packages/cli/scripts/run-tests.cjs",
+      "packages/couleur/scripts/run-tests.cjs"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "dcba8d43d224",
+    "fichiers": [
+      "packages/cli/scripts/run-tests.cjs",
+      "packages/couleur/scripts/run-tests.cjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "5aa5c350ebc5",
+    "fichiers": [
+      "packages/cli/scripts/run-tests.cjs",
+      "packages/kit/scripts/run-tests.cjs"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "dcba8d43d224",
+    "fichiers": [
+      "packages/cli/scripts/run-tests.cjs",
+      "packages/kit/scripts/run-tests.cjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "7821cb359f16",
+    "fichiers": [
+      "packages/cli/scripts/run-tests.cjs",
+      "scripts/run-tests.cjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "dcba8d43d224",
+    "fichiers": [
+      "packages/cli/scripts/run-tests.cjs",
+      "scripts/run-tests.cjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "844e539d08d1",
+    "fichiers": [
+      "packages/cli/src/rapport-github.mjs",
+      "packages/cli/src/rapport-gitlab.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "854a7ccee0d8",
+    "fichiers": [
+      "packages/cli/src/rapport-github.mjs",
+      "packages/cli/src/rapport-gitlab.mjs"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "efa7b009d9f2",
+    "fichiers": [
+      "packages/cli/src/rapport-github.mjs",
+      "packages/cli/src/rapport-gitlab.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "feb31b16cdfa",
+    "fichiers": [
+      "packages/cli/tests/check.test.mjs",
+      "packages/cli/tests/check.test.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "845833fd1d4f",
+    "fichiers": [
+      "packages/cli/tests/check.test.mjs",
+      "packages/kit/src/lecteurs/controle-repository.mjs"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "a449b114de48",
+    "fichiers": [
+      "packages/cli/tests/check.test.mjs",
+      "packages/kit/tests/controleRepository.test.mjs"
+    ],
+    "lignes": 15
+  },
+  {
+    "empreinte": "aa0f8db07dac",
+    "fichiers": [
+      "packages/cli/tests/check.test.mjs",
+      "packages/kit/tests/controleRepository.test.mjs"
+    ],
+    "lignes": 12
+  },
+  {
+    "empreinte": "b2dc6cdcdfc1",
+    "fichiers": [
+      "packages/cli/tests/check.test.mjs",
+      "packages/kit/tests/controleRepository.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "a1b3ad0bea3c",
+    "fichiers": [
+      "packages/cli/tests/check.test.mjs",
+      "packages/kit/tests/diagnostic-architecture.test.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "c056fc0b274d",
+    "fichiers": [
+      "packages/cli/tests/check.test.mjs",
+      "packages/kit/tests/diagnostic-parite.test.mjs"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "845833fd1d4f",
+    "fichiers": [
+      "packages/cli/tests/check.test.mjs",
+      "packages/kit/tests/verdict-demande.test.mjs"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "4cdf79653906",
+    "fichiers": [
+      "packages/cli/tests/recette.test.mjs",
+      "packages/cli/tests/recette.test.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "fe16d7588836",
+    "fichiers": [
+      "packages/couleur/scripts/mesurer-limites.mjs",
+      "packages/couleur/tests/limites.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "5aa5c350ebc5",
+    "fichiers": [
+      "packages/couleur/scripts/run-tests.cjs",
+      "packages/kit/scripts/run-tests.cjs"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "dcba8d43d224",
+    "fichiers": [
+      "packages/couleur/scripts/run-tests.cjs",
+      "packages/kit/scripts/run-tests.cjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "7821cb359f16",
+    "fichiers": [
+      "packages/couleur/scripts/run-tests.cjs",
+      "scripts/run-tests.cjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "dcba8d43d224",
+    "fichiers": [
+      "packages/couleur/scripts/run-tests.cjs",
+      "scripts/run-tests.cjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "811eb6f3bd8c",
+    "fichiers": [
+      "packages/couleur/src/jugement.ts",
+      "packages/plugin-palettes/src/rapport.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "bc1b900e175f",
+    "fichiers": [
+      "packages/couleur/src/reconstruction.ts",
+      "packages/couleur/tests/tirageReconstruction.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "0a12a8193f3f",
+    "fichiers": [
+      "packages/couleur/src/tailwind.ts",
+      "packages/couleur/src/tailwind.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "0238e8f3bb33",
+    "fichiers": [
+      "packages/couleur/tests/limites.test.ts",
+      "packages/couleur/tests/limites.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "60c6b24c355b",
+    "fichiers": [
+      "packages/couleur/tests/reconstruction.test.ts",
+      "packages/couleur/tests/reconstruction.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "7821cb359f16",
+    "fichiers": [
+      "packages/kit/scripts/run-tests.cjs",
+      "scripts/run-tests.cjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "dcba8d43d224",
+    "fichiers": [
+      "packages/kit/scripts/run-tests.cjs",
+      "scripts/run-tests.cjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "6c7bab3dd494",
+    "fichiers": [
+      "packages/kit/src/controles/corrections.ts",
+      "packages/kit/src/controles/corrections.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "f7ee8d071bfc",
+    "fichiers": [
+      "packages/kit/src/controles/couche.ts",
+      "packages/kit/src/controles/oublis.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "6b16af55aaef",
+    "fichiers": [
+      "packages/kit/src/controles/mapping.ts",
+      "packages/kit/src/controles/mapping.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "f7ee8d071bfc",
+    "fichiers": [
+      "packages/kit/src/controles/oublis.ts",
+      "packages/kit/src/controles/oublis.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "12a0df464028",
+    "fichiers": [
+      "packages/kit/src/controles/structure.ts",
+      "packages/plugin-architect/tests/croissanceDuKit.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "845833fd1d4f",
+    "fichiers": [
+      "packages/kit/src/lecteurs/controle-repository.mjs",
+      "packages/kit/tests/controleRepository.test.mjs"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "c056fc0b274d",
+    "fichiers": [
+      "packages/kit/src/lecteurs/controle-repository.mjs",
+      "packages/kit/tests/diagnostic-parite.test.mjs"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "eb57e685cc3d",
+    "fichiers": [
+      "packages/kit/src/lecteurs/controle-repository.mjs",
+      "packages/kit/tests/verdict-demande.test.mjs"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "2167625f0e51",
+    "fichiers": [
+      "packages/kit/tests/cascadeDesVariants.test.ts",
+      "packages/kit/tests/rolesDesAxesGeneriques.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "b2dc6cdcdfc1",
+    "fichiers": [
+      "packages/kit/tests/controleRepository.test.mjs",
+      "packages/kit/tests/controleRepository.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "4a85f59e141e",
+    "fichiers": [
+      "packages/kit/tests/controleRepository.test.mjs",
+      "packages/kit/tests/diagnostic-architecture.test.mjs"
+    ],
+    "lignes": 12
+  },
+  {
+    "empreinte": "aaefc34c9202",
+    "fichiers": [
+      "packages/kit/tests/controleRepository.test.mjs",
+      "packages/kit/tests/diagnostic-parite.test.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "845833fd1d4f",
+    "fichiers": [
+      "packages/kit/tests/controleRepository.test.mjs",
+      "packages/kit/tests/verdict-demande.test.mjs"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "7bc5d7210338",
+    "fichiers": [
+      "packages/kit/tests/controles-composant.test.ts",
+      "packages/kit/tests/valeurDAxeUnique.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "7ecd0eac584f",
+    "fichiers": [
+      "packages/kit/tests/corrections.test.ts",
+      "packages/kit/tests/corrections.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "c056fc0b274d",
+    "fichiers": [
+      "packages/kit/tests/diagnostic-parite.test.mjs",
+      "packages/kit/tests/verdict-demande.test.mjs"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "3db0663ede37",
+    "fichiers": [
+      "packages/kit/tests/identite.test.ts",
+      "packages/plugin-exporter/tests/github.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "bd07414fd4a9",
+    "fichiers": [
+      "packages/kit/tests/lexiqueReferentiel.test.ts",
+      "packages/kit/tests/questionsReferentiel.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "bd07414fd4a9",
+    "fichiers": [
+      "packages/kit/tests/lexiqueReferentiel.test.ts",
+      "packages/plugin-architect/tests/nomenclatureProjection.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "bd07414fd4a9",
+    "fichiers": [
+      "packages/kit/tests/questionsReferentiel.test.ts",
+      "packages/plugin-architect/tests/nomenclatureProjection.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "80f634d2fd4d",
+    "fichiers": [
+      "packages/kit/tests/stress/commun/prng.ts",
+      "packages/plugin-architect/tests/aides/cataloguesDeCroissance.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "269394b25154",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/cas.ts",
+      "packages/kit/tests/stress/f3-composant/operateursAxes.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "ef6f79267c9e",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/cas.ts",
+      "packages/kit/tests/stress/f3-composant/operateursAxes.ts"
+    ],
+    "lignes": 15
+  },
+  {
+    "empreinte": "60e9c7350a54",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/cas.ts",
+      "packages/kit/tests/stress/f5-variants/cas.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "979be07a79aa",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/cas.ts",
+      "packages/kit/tests/stress/f5-variants/cas.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "979be07a79aa",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/cas.ts",
+      "packages/kit/tests/stress/f7-accessibilite/degradation.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "1733eb5a7ad1",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/mesurer.ts",
+      "packages/kit/tests/stress/f5-variants/mesurer.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "e0a00808b669",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/mesurer.ts",
+      "packages/kit/tests/stress/f5-variants/mesurer.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "d9413d3892be",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/mesurer.ts",
+      "packages/kit/tests/stress/f7-accessibilite/mesureDesCas.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "26d50a5b136f",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/mesurer.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/operateurs.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "71cc835a2c33",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/mesurer.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/operateurs.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "60ea5266f603",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/mesurer.ts",
+      "packages/plugin-architect/scripts/stress/f8-analyse/mesurer.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "78006206cc12",
+    "fichiers": [
+      "packages/kit/tests/stress/f2-structure/mesurer.ts",
+      "packages/plugin-architect/scripts/stress/f8-analyse/mesurer.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "7627e11469bf",
+    "fichiers": [
+      "packages/kit/tests/stress/f3-composant/operateursAxes.ts",
+      "packages/kit/tests/stress/f5-variants/cas.ts"
+    ],
+    "lignes": 18
+  },
+  {
+    "empreinte": "979be07a79aa",
+    "fichiers": [
+      "packages/kit/tests/stress/f3-composant/operateursAxes.ts",
+      "packages/kit/tests/stress/f7-accessibilite/degradation.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "4e82d5622833",
+    "fichiers": [
+      "packages/kit/tests/stress/f5-variants/cas.ts",
+      "packages/kit/tests/stress/f7-accessibilite/degradation.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "0862d1a8872d",
+    "fichiers": [
+      "packages/kit/tests/stress/f5-variants/mesurer.ts",
+      "packages/kit/tests/stress/f7-accessibilite/mesureDesCas.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "7bd332c9ff9d",
+    "fichiers": [
+      "packages/kit/tests/stress/f5-variants/mesurer.ts",
+      "packages/kit/tests/stress/f7-accessibilite/mesureDesCas.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "26d50a5b136f",
+    "fichiers": [
+      "packages/kit/tests/stress/f5-variants/mesurer.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/operateurs.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "60ea5266f603",
+    "fichiers": [
+      "packages/kit/tests/stress/f5-variants/mesurer.ts",
+      "packages/plugin-architect/scripts/stress/f8-analyse/mesurer.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "26d50a5b136f",
+    "fichiers": [
+      "packages/kit/tests/stress/f7-accessibilite/mesureDesCas.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/operateurs.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "60ea5266f603",
+    "fichiers": [
+      "packages/kit/tests/stress/f7-accessibilite/mesureDesCas.ts",
+      "packages/plugin-architect/scripts/stress/f8-analyse/mesurer.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "12fe2f410d64",
+    "fichiers": [
+      "packages/kit/tests/stressAccessibiliteOperateurs.test.ts",
+      "packages/kit/tests/stressAccessibiliteOperateursBis.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "1b05a29842db",
+    "fichiers": [
+      "packages/kit/tests/stressComposantOperateurs.test.ts",
+      "packages/kit/tests/stressComposantOperateursBis.test.ts"
+    ],
+    "lignes": 15
+  },
+  {
+    "empreinte": "b58af9198600",
+    "fichiers": [
+      "packages/kit/tests/stressComposantOperateurs.test.ts",
+      "packages/kit/tests/stressComposantTailles.test.ts"
+    ],
+    "lignes": 12
+  },
+  {
+    "empreinte": "b58af9198600",
+    "fichiers": [
+      "packages/kit/tests/stressComposantOperateursBis.test.ts",
+      "packages/kit/tests/stressComposantTailles.test.ts"
+    ],
+    "lignes": 12
+  },
+  {
+    "empreinte": "cc331332b62b",
+    "fichiers": [
+      "packages/kit/tests/stressStructureOperateurs.test.ts",
+      "packages/kit/tests/stressStructureOperateursBis.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "dbd69f2136b0",
+    "fichiers": [
+      "packages/kit/tests/typography-token-types.test.mjs",
+      "packages/kit/tests/typography-token-types.test.mjs"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "082ce465ca80",
+    "fichiers": [
+      "packages/kit/tests/validation-contrats.test.mjs",
+      "packages/kit/tests/validation-contrats.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "4023baaa092e",
+    "fichiers": [
+      "packages/kit/tests/validation-contrats.test.mjs",
+      "packages/kit/tests/validation-contrats.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "f733c661b389",
+    "fichiers": [
+      "packages/kit/tests/validation-contrats.test.mjs",
+      "packages/kit/tests/validation-contrats.test.mjs"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "9acb1c8cb0e9",
+    "fichiers": [
+      "packages/kit/tests/verdict-bilan.test.mjs",
+      "packages/kit/tests/verdict-demande.test.mjs"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "dbbb2038a22c",
+    "fichiers": [
+      "packages/kit/tests/verdict-demande.test.mjs",
+      "packages/kit/tests/verdict-demande.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "be495ce550d2",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f2-structure/chaine.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/chaine.ts"
+    ],
+    "lignes": 19
+  },
+  {
+    "empreinte": "46e5f5799e5d",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f2-structure/executer.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/executer.ts"
+    ],
+    "lignes": 12
+  },
+  {
+    "empreinte": "49795ebe1d92",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f2-structure/executer.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/executer.ts"
+    ],
+    "lignes": 16
+  },
+  {
+    "empreinte": "a4d5a8e3814b",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f2-structure/executer.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/executer.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "ba3405c94026",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f2-structure/executer.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/executer.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "c2bf96c89046",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f2-structure/executer.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/executer.ts"
+    ],
+    "lignes": 15
+  },
+  {
+    "empreinte": "32b0f0bffa94",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f2-structure/signatures.ts",
+      "packages/plugin-architect/scripts/stress/f3-composant/signatures.ts"
+    ],
+    "lignes": 12
+  },
+  {
+    "empreinte": "de1f3a643a86",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f2-structure/signatures.ts",
+      "packages/plugin-architect/scripts/stress/f8-analyse/signatures.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "4dc0edf7bab2",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f3-composant/chaine.ts",
+      "packages/plugin-architect/scripts/stress/f8-analyse/chaine.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "60ea5266f603",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f3-composant/operateurs.ts",
+      "packages/plugin-architect/scripts/stress/f8-analyse/mesurer.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "de1f3a643a86",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f3-composant/signatures.ts",
+      "packages/plugin-architect/scripts/stress/f8-analyse/signatures.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "8652e195fd9e",
+    "fichiers": [
+      "packages/plugin-architect/scripts/stress/f8-analyse/interactions.ts",
+      "packages/plugin-architect/scripts/stress/f8-analyse/operateursCycle.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "c54e1e1dda41",
+    "fichiers": [
+      "packages/plugin-architect/src/lecture.ts",
+      "packages/plugin-architect/src/lecture.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "31d26c2f6c56",
+    "fichiers": [
+      "packages/plugin-architect/src/lecture.ts",
+      "packages/plugin-socle/tests/generateur/atelierDeCalques.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "c517832af3cb",
+    "fichiers": [
+      "packages/plugin-architect/src/lecture.ts",
+      "packages/plugin-socle/tests/generateur/atelierDeCalques.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "d7510e99347d",
+    "fichiers": [
+      "packages/plugin-architect/src/lecture.ts",
+      "packages/plugin-socle/tests/generateur/atelierDeCalques.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "a362265e733a",
+    "fichiers": [
+      "packages/plugin-architect/src/messages/nomenclature.ts",
+      "packages/plugin-architect/src/ui/nomenclature/reglesRecues.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "be8d142e43da",
+    "fichiers": [
+      "packages/plugin-architect/src/regles.ts",
+      "packages/plugin-architect/tests/aides/voieAvantLInterne.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "062bd7776c49",
+    "fichiers": [
+      "packages/plugin-architect/src/sandbox/analyse.ts",
+      "packages/plugin-architect/tests/aides/voieAvantLInterne.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "a1ecc3d1756d",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/analyse/index.ts",
+      "packages/plugin-architect/src/ui/tokens/panneau.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "017a224adebf",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/nomenclature/aAppliquer.ts",
+      "packages/plugin-architect/src/ui/nomenclature/aTrancher.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "46d7f5fc545c",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/nomenclature/aAppliquer.ts",
+      "packages/plugin-architect/src/ui/nomenclature/aTrancher.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "a5b23dca2009",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/nomenclature/aAppliquer.ts",
+      "packages/plugin-architect/src/ui/nomenclature/aTrancher.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "46d7f5fc545c",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/nomenclature/aAppliquer.ts",
+      "packages/plugin-architect/src/ui/nomenclature/feuilles.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "46d7f5fc545c",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/nomenclature/aTrancher.ts",
+      "packages/plugin-architect/src/ui/nomenclature/feuilles.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "f9b33c6fd42c",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/nomenclature/aTrancher.ts",
+      "packages/plugin-architect/src/ui/questions/index.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "2e42c50ab663",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/nomenclature/aTrancher.ts",
+      "packages/plugin-architect/src/ui/tokens/cochage.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "186fc8a389bd",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/nomenclature/feuilles.ts",
+      "packages/plugin-architect/src/ui/pressePapiers.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "889a522323f1",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/nomenclature/telechargement.ts",
+      "packages/plugin-architect/src/ui/telechargement.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "69fe7947a373",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/structure/aFaire.ts",
+      "packages/plugin-architect/src/ui/structure/aFaire.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "064f0878811d",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/structure/lecture.ts",
+      "packages/plugin-architect/tests/tokensStructure.test.ts"
+    ],
+    "lignes": 21
+  },
+  {
+    "empreinte": "2526fee23cb9",
+    "fichiers": [
+      "packages/plugin-architect/src/ui/virtualisation.ts",
+      "packages/plugin-architect/src/ui/virtualisation.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "4343ce57fb15",
+    "fichiers": [
+      "packages/plugin-architect/tests/accesDesChamps.ts",
+      "packages/plugin-exporter/tests/aides/accesDesChamps.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "7947e330e6ce",
+    "fichiers": [
+      "packages/plugin-architect/tests/accesDesChamps.ts",
+      "packages/plugin-exporter/tests/aides/accesDesChamps.ts"
+    ],
+    "lignes": 14
+  },
+  {
+    "empreinte": "901d3b53c167",
+    "fichiers": [
+      "packages/plugin-architect/tests/accesDesChamps.ts",
+      "packages/plugin-exporter/tests/aides/accesDesChamps.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "97f142c6af51",
+    "fichiers": [
+      "packages/plugin-architect/tests/acquisitionDesVariables.test.ts",
+      "packages/plugin-architect/tests/relectureApresAppliquer.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "44cbe1d0f48f",
+    "fichiers": [
+      "packages/plugin-architect/tests/actualisationDuModeTokens.test.ts",
+      "packages/plugin-architect/tests/actualisationDuModeTokens.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "c15b9989bb1c",
+    "fichiers": [
+      "packages/plugin-architect/tests/actualisationDuModeTokens.test.ts",
+      "packages/plugin-architect/tests/actualisationDuModeTokens.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "0a31c05a116a",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/analyse.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "3b1dac43a09f",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/analyse.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "539e4d27fc69",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/analyse.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "5f91471d2388",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/analyse.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "63716e94a037",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/analyse.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "a0db4b196fb8",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/analyse.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "b79be7d1c686",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/analyse.test.ts"
+    ],
+    "lignes": 14
+  },
+  {
+    "empreinte": "ce3011e44183",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/analyse.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "e6823b67ba75",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/analyse.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "0a31c05a116a",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/ignoresDesQuestions.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "eef9a21cf2f6",
+    "fichiers": [
+      "packages/plugin-architect/tests/analyse.test.ts",
+      "packages/plugin-architect/tests/ignoresDesQuestions.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "1eaae501523c",
+    "fichiers": [
+      "packages/plugin-architect/tests/bibliotheque.test.ts",
+      "packages/plugin-architect/tests/catalogue.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "b26e9162e0c2",
+    "fichiers": [
+      "packages/plugin-architect/tests/chasseComposants.test.ts",
+      "packages/plugin-architect/tests/composantsDeReference.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "409515232d60",
+    "fichiers": [
+      "packages/plugin-architect/tests/chasseComposants.test.ts",
+      "packages/plugin-architect/tests/generateur/analyserDocument.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "7f15c3d73af1",
+    "fichiers": [
+      "packages/plugin-architect/tests/controlesDeStructureBranches.test.ts",
+      "packages/plugin-architect/tests/controlesDeStructureDistants.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "7f15c3d73af1",
+    "fichiers": [
+      "packages/plugin-architect/tests/controlesDeStructureBranches.test.ts",
+      "packages/plugin-architect/tests/messagesDeLAnalyse.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "d2b1e9ce384c",
+    "fichiers": [
+      "packages/plugin-architect/tests/controlesDeStructureDistants.test.ts",
+      "packages/plugin-architect/tests/messagesDeLAnalyse.test.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "ffa5089b0480",
+    "fichiers": [
+      "packages/plugin-architect/tests/creationDansLeTheme.test.ts",
+      "packages/plugin-architect/tests/journal.test.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "6594fd0eef43",
+    "fichiers": [
+      "packages/plugin-architect/tests/creationDansLeTheme.test.ts",
+      "packages/plugin-architect/tests/structure.test.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "41d0520f60b3",
+    "fichiers": [
+      "packages/plugin-architect/tests/echecsIgnoresEtAliasDeStructure.test.ts",
+      "packages/plugin-architect/tests/fusionDeVariablesEcran.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "b6dfbe19ab46",
+    "fichiers": [
+      "packages/plugin-architect/tests/echecsIgnoresEtAliasDeStructure.test.ts",
+      "packages/plugin-architect/tests/fusionDeVariablesEcran.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "2ebfd17eb12f",
+    "fichiers": [
+      "packages/plugin-architect/tests/echecsIgnoresEtAliasDeStructure.test.ts",
+      "packages/plugin-architect/tests/listesDeSections.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "2df5db8b25b6",
+    "fichiers": [
+      "packages/plugin-architect/tests/ecritureDesLiaisons.test.ts",
+      "packages/plugin-architect/tests/ecritureDesLiaisons.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "41d0520f60b3",
+    "fichiers": [
+      "packages/plugin-architect/tests/fusionDeVariablesEcran.test.ts",
+      "packages/plugin-architect/tests/listesDeSections.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "693d37c4b749",
+    "fichiers": [
+      "packages/plugin-architect/tests/ignoresDesQuestions.test.ts",
+      "packages/plugin-architect/tests/ignoresDesRegles.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "344767222762",
+    "fichiers": [
+      "packages/plugin-architect/tests/interface/configuration.test.mjs",
+      "packages/plugin-architect/tests/interface/configuration.test.mjs"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "88fc1d16f4e5",
+    "fichiers": [
+      "packages/plugin-architect/tests/interface/configuration.test.mjs",
+      "packages/plugin-architect/tests/interface/configuration.test.mjs"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "5a10c42541b6",
+    "fichiers": [
+      "packages/plugin-architect/tests/interface/ignores.test.mjs",
+      "packages/plugin-architect/tests/interface/questions.test.mjs"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "06da4fc6fa52",
+    "fichiers": [
+      "packages/plugin-architect/tests/interface/preparation.test.mjs",
+      "packages/plugin-architect/tests/interface/preparation.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "ffa5089b0480",
+    "fichiers": [
+      "packages/plugin-architect/tests/journal.test.ts",
+      "packages/plugin-architect/tests/structure.test.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "7acc09b3c470",
+    "fichiers": [
+      "packages/plugin-architect/tests/lectureAnticipeeDesLibraries.test.ts",
+      "packages/plugin-architect/tests/prelectureALaSelection.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "9eb4a209d093",
+    "fichiers": [
+      "packages/plugin-architect/tests/loiDesTextes.test.ts",
+      "packages/plugin-palettes/tests/loiDesTextes.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "3640924bafee",
+    "fichiers": [
+      "packages/plugin-architect/tests/memoireDeChampsDeLaDemande.test.ts",
+      "packages/plugin-architect/tests/memoireDeRessourcesDeLaDemande.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "3d461acf1a99",
+    "fichiers": [
+      "packages/plugin-architect/tests/nomenclatureProtocole.test.ts",
+      "packages/plugin-architect/tests/nomenclatureProtocole.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "6aaef4927ac5",
+    "fichiers": [
+      "packages/plugin-architect/tests/nomenclatureProtocole.test.ts",
+      "packages/plugin-architect/tests/nomenclatureProtocole.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "94364402fe00",
+    "fichiers": [
+      "packages/plugin-architect/tests/nomenclatureProtocole.test.ts",
+      "packages/plugin-architect/tests/nomenclatureProtocole.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "9db7faf283a7",
+    "fichiers": [
+      "packages/plugin-architect/tests/nomenclatureSandboxQuickjs.test.ts",
+      "packages/plugin-exporter/tests/sandboxQuickjs.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "d89a9dc61623",
+    "fichiers": [
+      "packages/plugin-architect/tests/nomenclatureSandboxQuickjs.test.ts",
+      "packages/plugin-exporter/tests/sandboxQuickjs.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "f25a53f415bb",
+    "fichiers": [
+      "packages/plugin-architect/tests/pariteDeLInterne.test.ts",
+      "packages/plugin-architect/tests/pariteDesRequetesDuMoteur.test.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "08061bf3a3d7",
+    "fichiers": [
+      "packages/plugin-architect/tests/paritesDeSession.test.ts",
+      "packages/plugin-architect/tests/paritesDeSession.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "0ae38f3c52ee",
+    "fichiers": [
+      "packages/plugin-architect/tests/paritesDeSession.test.ts",
+      "packages/plugin-architect/tests/paritesDeSession.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "b0ff54af92c2",
+    "fichiers": [
+      "packages/plugin-architect/tests/paritesDeSession.test.ts",
+      "packages/plugin-architect/tests/paritesDeSession.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "adda81bd1bac",
+    "fichiers": [
+      "packages/plugin-architect/tests/paritesDeSession.test.ts",
+      "packages/plugin-architect/tests/validationDeLEntree.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "9d04569806d7",
+    "fichiers": [
+      "packages/plugin-architect/tests/prelectureALaSelection.test.ts",
+      "packages/plugin-architect/tests/prelectureALaSelection.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "f6cff72cf7e5",
+    "fichiers": [
+      "packages/plugin-architect/tests/segmentsDesLecteurs.test.ts",
+      "packages/plugin-exporter/tests/segmentsDuMoteur.test.ts"
+    ],
+    "lignes": 15
+  },
+  {
+    "empreinte": "66e171a66c43",
+    "fichiers": [
+      "packages/plugin-exporter/src/code.ts",
+      "packages/plugin-palettes/src/code.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "fdacb7b5fef7",
+    "fichiers": [
+      "packages/plugin-exporter/src/ui/components/CompteRendu.ts",
+      "packages/plugin-palettes/src/ui/section.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "50efffeb1b9d",
+    "fichiers": [
+      "packages/plugin-exporter/src/ui/components/PiedDePage.ts",
+      "packages/plugin-palettes/src/ui/nuancier.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "089a75ff390f",
+    "fichiers": [
+      "packages/plugin-exporter/tests/budgetEtAnnulation.test.ts",
+      "packages/plugin-exporter/tests/exportComponent.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "7d7a64a1bfa0",
+    "fichiers": [
+      "packages/plugin-exporter/tests/code.test.ts",
+      "packages/plugin-exporter/tests/code.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "d8636e4593ce",
+    "fichiers": [
+      "packages/plugin-exporter/tests/diagnosticsComposantReel.test.ts",
+      "packages/plugin-exporter/tests/exportComponent.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "d8636e4593ce",
+    "fichiers": [
+      "packages/plugin-exporter/tests/diagnosticsComposantReel.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "d8636e4593ce",
+    "fichiers": [
+      "packages/plugin-exporter/tests/diagnosticsComposantReel.test.ts",
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "283caac483a9",
+    "fichiers": [
+      "packages/plugin-exporter/tests/effectStyles.test.ts",
+      "packages/plugin-exporter/tests/effectStyles.test.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/effectStyles.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "ddce5363b26e",
+    "fichiers": [
+      "packages/plugin-exporter/tests/effectStyles.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "e12eb5140ba9",
+    "fichiers": [
+      "packages/plugin-exporter/tests/effectStyles.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/effectStyles.test.ts",
+      "packages/plugin-exporter/tests/extractSizes.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/effectStyles.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/effectStyles.test.ts",
+      "packages/plugin-exporter/tests/layoutNodes.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/effectStyles.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/effectStyles.test.ts",
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/effectStyles.test.ts",
+      "packages/plugin-exporter/tests/structureTree.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "3407d641bbd1",
+    "fichiers": [
+      "packages/plugin-exporter/tests/exportComponent.test.ts",
+      "packages/plugin-exporter/tests/exportComponent.test.ts"
+    ],
+    "lignes": 19
+  },
+  {
+    "empreinte": "475d1a870be4",
+    "fichiers": [
+      "packages/plugin-exporter/tests/exportComponent.test.ts",
+      "packages/plugin-exporter/tests/exportComponent.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "85e11d1a5c8f",
+    "fichiers": [
+      "packages/plugin-exporter/tests/exportComponent.test.ts",
+      "packages/plugin-exporter/tests/exportComponent.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "85e11d1a5c8f",
+    "fichiers": [
+      "packages/plugin-exporter/tests/exportComponent.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "d8636e4593ce",
+    "fichiers": [
+      "packages/plugin-exporter/tests/exportComponent.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "d8636e4593ce",
+    "fichiers": [
+      "packages/plugin-exporter/tests/exportComponent.test.ts",
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "0254e61dffae",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "0bb32ca82cf2",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "1264807b3325",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "1352c87f94b1",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "2800b0ecf21f",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "52b14622bdf4",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "5e3b05f7c944",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "6857624dae12",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "6f79ade370f1",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "714188c2a8e7",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "7380486ac380",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "7ead8da128ab",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "805cce9ec7ef",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "a76254d2c37b",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 12
+  },
+  {
+    "empreinte": "b2a75fbf02d5",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "b8e55a8739f0",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "c78f3b13d4ee",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "c9b04169c664",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "cb7759f63125",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "d48b440f5df7",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "df1b0efe530a",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "e92835c2cf48",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "f05ac1dd2403",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "f1ef4fc228fa",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "f32a66805d73",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "faa6619135e2",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "fb54b21608f2",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractLayout.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractSizes.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "017f6db88feb",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/layoutNodes.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "15b258bb36eb",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "2800b0ecf21f",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "841a6f97179b",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "a52e696465df",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "cb7759f63125",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "e1bcdd028f47",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractLayout.test.ts",
+      "packages/plugin-exporter/tests/structureTree.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "2ff36ef86e72",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractSizes.test.ts",
+      "packages/plugin-exporter/tests/extractSizes.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractSizes.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractSizes.test.ts",
+      "packages/plugin-exporter/tests/layoutNodes.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractSizes.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractSizes.test.ts",
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractSizes.test.ts",
+      "packages/plugin-exporter/tests/structureTree.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "5894f4f8a73c",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "85e11d1a5c8f",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "a160c6db7ec8",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "d8636e4593ce",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "f341f2b8da06",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/extractStructure.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/layoutNodes.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "ae7959c2cec4",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "d8636e4593ce",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractStructure.test.ts",
+      "packages/plugin-exporter/tests/structureTree.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "215f27e7db5a",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractVariantTypography.test.ts",
+      "packages/plugin-exporter/tests/extractVariantTypography.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "546c57511abb",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractVariantTypography.test.ts",
+      "packages/plugin-exporter/tests/extractVariantTypography.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "f9bf5505af75",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractVariantTypography.test.ts",
+      "packages/plugin-exporter/tests/extractVariantTypography.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "8d0e9467f0aa",
+    "fichiers": [
+      "packages/plugin-exporter/tests/extractVariantTypography.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "011c6cde81cc",
+    "fichiers": [
+      "packages/plugin-exporter/tests/github.test.ts",
+      "packages/plugin-exporter/tests/github.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "446f69b5da72",
+    "fichiers": [
+      "packages/plugin-exporter/tests/github.test.ts",
+      "packages/plugin-exporter/tests/github.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "aa7c34fb5ac9",
+    "fichiers": [
+      "packages/plugin-exporter/tests/github.test.ts",
+      "packages/plugin-exporter/tests/github.test.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "ac1b5b25d752",
+    "fichiers": [
+      "packages/plugin-exporter/tests/github.test.ts",
+      "packages/plugin-exporter/tests/github.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "ce16210213c6",
+    "fichiers": [
+      "packages/plugin-exporter/tests/github.test.ts",
+      "packages/plugin-exporter/tests/github.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "e04e93da536c",
+    "fichiers": [
+      "packages/plugin-exporter/tests/github.test.ts",
+      "packages/plugin-exporter/tests/github.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "476b5e622ed0",
+    "fichiers": [
+      "packages/plugin-exporter/tests/github.test.ts",
+      "packages/plugin-exporter/tests/gitlab.test.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "e4d374f7acdd",
+    "fichiers": [
+      "packages/plugin-exporter/tests/iconRules.test.ts",
+      "packages/plugin-exporter/tests/iconRules.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "f1e5ecf0ab6c",
+    "fichiers": [
+      "packages/plugin-exporter/tests/imbriques.test.ts",
+      "packages/plugin-exporter/tests/imbriques.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "a5186cd6d845",
+    "fichiers": [
+      "packages/plugin-exporter/tests/interface/interface.test.mjs",
+      "packages/plugin-exporter/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "d13ea1f7e208",
+    "fichiers": [
+      "packages/plugin-exporter/tests/inventairesDuMoteur.test.ts",
+      "packages/plugin-exporter/tests/mesure.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutNodes.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutNodes.test.ts",
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "74be3dec68cb",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutNodes.test.ts",
+      "packages/plugin-exporter/tests/slotNames.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutNodes.test.ts",
+      "packages/plugin-exporter/tests/structureTree.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "105a743eeca7",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutSilences.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "2845b339fdbf",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutSilences.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "626b8985c54e",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutSilences.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "b875a1f20671",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutSilences.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "e3385610e40f",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutSilences.test.ts",
+      "packages/plugin-exporter/tests/layoutSilences.test.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutSilences.test.ts",
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/layoutSilences.test.ts",
+      "packages/plugin-exporter/tests/structureTree.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "327f8986b587",
+    "fichiers": [
+      "packages/plugin-exporter/tests/messagesDeRacine.test.ts",
+      "packages/plugin-exporter/tests/structureTree.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "c8fe2ab183a0",
+    "fichiers": [
+      "packages/plugin-exporter/tests/mesure.test.ts",
+      "packages/plugin-exporter/tests/mesure.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "2fba94df8287",
+    "fichiers": [
+      "packages/plugin-exporter/tests/mesure.test.ts",
+      "packages/plugin-exporter/tests/paritePerformance.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "06186e2086b8",
+    "fichiers": [
+      "packages/plugin-exporter/tests/nodeBindings.test.ts",
+      "packages/plugin-exporter/tests/nodeBindings.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "622df0dfa3ff",
+    "fichiers": [
+      "packages/plugin-exporter/tests/nodeBindings.test.ts",
+      "packages/plugin-exporter/tests/nodeBindings.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "87ea941715b4",
+    "fichiers": [
+      "packages/plugin-exporter/tests/nodeBindings.test.ts",
+      "packages/plugin-exporter/tests/nodeBindings.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "52092cc050f1",
+    "fichiers": [
+      "packages/plugin-exporter/tests/parcoursDesSources.test.ts",
+      "packages/plugin-exporter/tests/rules.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "c7ac9e8fa7b6",
+    "fichiers": [
+      "packages/plugin-exporter/tests/parcoursDesSources.test.ts",
+      "packages/plugin-exporter/tests/rules.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "10782f4808a3",
+    "fichiers": [
+      "packages/plugin-exporter/tests/parcoursDesSources.test.ts",
+      "packages/plugin-exporter/tests/template.test.ts"
+    ],
+    "lignes": 16
+  },
+  {
+    "empreinte": "35a9e4d7d575",
+    "fichiers": [
+      "packages/plugin-exporter/tests/parsers.test.ts",
+      "packages/plugin-exporter/tests/parsers.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "52092cc050f1",
+    "fichiers": [
+      "packages/plugin-exporter/tests/rules.test.ts",
+      "packages/plugin-exporter/tests/template.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "c7ac9e8fa7b6",
+    "fichiers": [
+      "packages/plugin-exporter/tests/rules.test.ts",
+      "packages/plugin-exporter/tests/template.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "57ca99f8e1c6",
+    "fichiers": [
+      "packages/plugin-exporter/tests/sampleInvariants.test.ts",
+      "packages/plugin-exporter/tests/sampleInvariants.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "3eec43a9b8b2",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "4683e320ef74",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "5187439969b8",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "6425866635ae",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "6720f0f23a47",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "6f3e1438a184",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "8354b596349f",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 14
+  },
+  {
+    "empreinte": "8b7b77def1e1",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 14
+  },
+  {
+    "empreinte": "ac5086c5fe98",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "c04ebaae3a2d",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "e0f81430770b",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "fb2b91004877",
+    "fichiers": [
+      "packages/plugin-exporter/tests/samples.test.ts",
+      "packages/plugin-exporter/tests/samples.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "b4f7c1da9019",
+    "fichiers": [
+      "packages/plugin-exporter/tests/semantics.test.ts",
+      "packages/plugin-exporter/tests/semantics.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "38096badeb2e",
+    "fichiers": [
+      "packages/plugin-exporter/tests/slotNames.test.ts",
+      "packages/plugin-exporter/tests/tokensUsed.test.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "c18c1d84984b",
+    "fichiers": [
+      "packages/plugin-exporter/tests/unsupportedProperties.test.ts",
+      "packages/plugin-exporter/tests/unsupportedProperties.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "aee64f813bef",
+    "fichiers": [
+      "packages/plugin-exporter/tests/variables.test.ts",
+      "packages/plugin-exporter/tests/variables.test.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "49e1cba929a9",
+    "fichiers": [
+      "packages/plugin-exporter/tests/variantTokens.test.ts",
+      "packages/plugin-exporter/tests/variantTokens.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "b3255ae4c18c",
+    "fichiers": [
+      "packages/plugin-exporter/tests/variantTokens.test.ts",
+      "packages/plugin-exporter/tests/variantTokens.test.ts"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "16b19babd717",
+    "fichiers": [
+      "packages/plugin-palettes/src/i18n/en.ts",
+      "packages/plugin-palettes/src/i18n/fr.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "189c7c368daf",
+    "fichiers": [
+      "packages/plugin-palettes/src/i18n/en.ts",
+      "packages/plugin-palettes/src/i18n/fr.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "589096387bff",
+    "fichiers": [
+      "packages/plugin-palettes/src/i18n/en.ts",
+      "packages/plugin-palettes/src/i18n/fr.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "6a09efe8f40b",
+    "fichiers": [
+      "packages/plugin-palettes/src/i18n/en.ts",
+      "packages/plugin-palettes/src/i18n/fr.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "7f55900eeb3e",
+    "fichiers": [
+      "packages/plugin-palettes/src/i18n/en.ts",
+      "packages/plugin-palettes/src/i18n/fr.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "aaca4a79b94c",
+    "fichiers": [
+      "packages/plugin-palettes/src/i18n/en.ts",
+      "packages/plugin-palettes/src/i18n/fr.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "b087999f415b",
+    "fichiers": [
+      "packages/plugin-palettes/src/i18n/en.ts",
+      "packages/plugin-palettes/src/i18n/fr.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "d57dae72ea5c",
+    "fichiers": [
+      "packages/plugin-palettes/src/i18n/en.ts",
+      "packages/plugin-palettes/src/i18n/fr.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "df36ed0cae1d",
+    "fichiers": [
+      "packages/plugin-palettes/src/i18n/en.ts",
+      "packages/plugin-palettes/src/i18n/fr.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "f3e478237677",
+    "fichiers": [
+      "packages/plugin-palettes/src/i18n/en.ts",
+      "packages/plugin-palettes/src/i18n/fr.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "32f647dbf5fb",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/destination.ts",
+      "packages/plugin-palettes/src/ui/pageDesPlanches.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "51b8e1c36550",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/frontiere.ts",
+      "packages/plugin-palettes/src/ui/frontiere.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "015be3a59682",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/harmonisation/carteReglages.ts",
+      "packages/plugin-palettes/src/ui/reglagesDeLaPalette.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "4a7788503f98",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/harmonisation/carteReglages.ts",
+      "packages/plugin-palettes/src/ui/reglagesDeLaPalette.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "4f664121886d",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/harmonisation/carteReglages.ts",
+      "packages/plugin-palettes/src/ui/reglagesDeLaPalette.ts"
+    ],
+    "lignes": 11
+  },
+  {
+    "empreinte": "867f2cdf7c12",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/harmonisation/carteReglages.ts",
+      "packages/plugin-palettes/src/ui/reglagesDeLaPalette.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "d771526134db",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/harmonisation/carteReglages.ts",
+      "packages/plugin-palettes/src/ui/reglagesDeLaPalette.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "d7d366908f64",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/harmonisation/carteReglages.ts",
+      "packages/plugin-palettes/src/ui/reglagesDeLaPalette.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "0ae81e979d6f",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/menuPalette.ts",
+      "packages/plugin-palettes/src/ui/selecteur.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "33bc75c00041",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/ongletGestion.ts",
+      "packages/plugin-palettes/src/ui/ongletGestion.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "6c63954cb424",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/ongletGestion.ts",
+      "packages/plugin-palettes/src/ui/ongletGestion.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "a8c65e1ab49c",
+    "fichiers": [
+      "packages/plugin-palettes/src/ui/ongletGestion.ts",
+      "packages/plugin-palettes/src/ui/ongletGestion.ts"
+    ],
+    "lignes": 12
+  },
+  {
+    "empreinte": "d0c20c566585",
+    "fichiers": [
+      "packages/plugin-palettes/tests/bilanDesPalettes.test.ts",
+      "packages/plugin-palettes/tests/paletteOuverte.test.ts"
+    ],
+    "lignes": 17
+  },
+  {
+    "empreinte": "a2429d874221",
+    "fichiers": [
+      "packages/plugin-palettes/tests/dessin.test.ts",
+      "packages/plugin-palettes/tests/fraicheur.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "33fc24121ebf",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "44e480b3bfd8",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "5835fff8486f",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "583c02ae4aed",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "5f599b11774b",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "6732ae6dc66e",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "68aa1d7e2c63",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "74bac6261037",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "881e597534a3",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "ab6e3505a46e",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "b2c33452c459",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "eba14ab27c33",
+    "fichiers": [
+      "packages/plugin-palettes/tests/interface/interface.test.mjs",
+      "packages/plugin-palettes/tests/interface/interface.test.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "b3877a3b7450",
+    "fichiers": [
+      "packages/plugin-palettes/tests/modeleDesGaranties.test.ts",
+      "packages/plugin-palettes/tests/presentation.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "dea757503337",
+    "fichiers": [
+      "packages/plugin-palettes/tests/nommageDesPalettes.test.ts",
+      "packages/plugin-palettes/tests/nommageDesPalettes.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "5b419bc98747",
+    "fichiers": [
+      "packages/plugin-palettes/tests/reprise.test.ts",
+      "packages/plugin-palettes/tests/reprise.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "98a14b55c2ed",
+    "fichiers": [
+      "packages/plugin-palettes/tests/variables.test.ts",
+      "packages/plugin-palettes/tests/variables.test.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "cc325bbfda91",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/acquisition.ts",
+      "packages/plugin-socle/src/composant/contract/structureTree.ts"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "079bfe9beb6e",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLesRequetes.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "3763774dbcc6",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLesRequetes.ts"
+    ],
+    "lignes": 26
+  },
+  {
+    "empreinte": "8707a7863009",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLesRequetes.ts"
+    ],
+    "lignes": 32
+  },
+  {
+    "empreinte": "88252c213ec2",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLesRequetes.ts"
+    ],
+    "lignes": 21
+  },
+  {
+    "empreinte": "a907cf24efae",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLesRequetes.ts"
+    ],
+    "lignes": 16
+  },
+  {
+    "empreinte": "b02493247faf",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLesRequetes.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "c9e0313a0077",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLesRequetes.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "f3b1c4506e48",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLesRequetes.ts"
+    ],
+    "lignes": 27
+  },
+  {
+    "empreinte": "042543c958e3",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/resultat.ts",
+      "packages/plugin-socle/src/composant/contract/exportComponent.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "04db2941b78b",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/resultat.ts",
+      "packages/plugin-socle/src/composant/contract/publication.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "04db2941b78b",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/resultat.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLaPublication.ts"
+    ],
+    "lignes": 13
+  },
+  {
+    "empreinte": "d602b4cb0098",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/analyse/validation.ts",
+      "packages/plugin-socle/src/composant/analyse/validation.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "2f58e3497358",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/contract/extractLayout.ts",
+      "packages/plugin-socle/src/composant/contract/extractSizes.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "5d3b1eccd856",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/contract/extractSamples.ts",
+      "packages/plugin-socle/src/composant/contract/extractSamples.ts"
+    ],
+    "lignes": 7
+  },
+  {
+    "empreinte": "8add480cee46",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/contract/nodeBindings.ts",
+      "packages/plugin-socle/src/composant/contract/nodeBindings.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "fe75ebf61d6a",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/contract/nodeBindings.ts",
+      "packages/plugin-socle/src/composant/contract/nodeBindings.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "411dc7b489a0",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/contract/nodeBindings.ts",
+      "packages/plugin-socle/src/composant/contract/structureTree.ts"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "aa58f66b4a91",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/contract/publication.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLaPublication.ts"
+    ],
+    "lignes": 133
+  },
+  {
+    "empreinte": "ac78926c8dd4",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/contract/publication.ts",
+      "packages/plugin-socle/tests/aides/cheminAvantLaPublication.ts"
+    ],
+    "lignes": 18
+  },
+  {
+    "empreinte": "e780c0beb6a5",
+    "fichiers": [
+      "packages/plugin-socle/src/composant/template/ecriture.ts",
+      "packages/plugin-socle/src/composant/template/ecriture.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "2da66b72b374",
+    "fichiers": [
+      "packages/plugin-socle/tests/feuille.test.ts",
+      "packages/plugin-socle/tests/feuille.test.ts"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "eda7aa0b1349",
+    "fichiers": [
+      "scripts/controle-style.mjs",
+      "scripts/mesurer-prose.mjs"
+    ],
+    "lignes": 8
+  },
+  {
+    "empreinte": "1229f6729f52",
+    "fichiers": [
+      "scripts/hook-commandes.mjs",
+      "scripts/hook-documents.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "9e198aab13dd",
+    "fichiers": [
+      "scripts/hook-commandes.mjs",
+      "scripts/hook-documents.mjs"
+    ],
+    "lignes": 6
+  },
+  {
+    "empreinte": "1229f6729f52",
+    "fichiers": [
+      "scripts/hook-commandes.mjs",
+      "scripts/hook-etat.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "1229f6729f52",
+    "fichiers": [
+      "scripts/hook-commandes.mjs",
+      "scripts/hook-reponse.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "1229f6729f52",
+    "fichiers": [
+      "scripts/hook-commandes.mjs",
+      "scripts/hook-style.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "1229f6729f52",
+    "fichiers": [
+      "scripts/hook-documents.mjs",
+      "scripts/hook-etat.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "1229f6729f52",
+    "fichiers": [
+      "scripts/hook-documents.mjs",
+      "scripts/hook-reponse.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "567c350237f5",
+    "fichiers": [
+      "scripts/hook-documents.mjs",
+      "scripts/hook-style.mjs"
+    ],
+    "lignes": 10
+  },
+  {
+    "empreinte": "1229f6729f52",
+    "fichiers": [
+      "scripts/hook-etat.mjs",
+      "scripts/hook-reponse.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "1229f6729f52",
+    "fichiers": [
+      "scripts/hook-etat.mjs",
+      "scripts/hook-style.mjs"
+    ],
+    "lignes": 9
+  },
+  {
+    "empreinte": "1229f6729f52",
+    "fichiers": [
+      "scripts/hook-reponse.mjs",
+      "scripts/hook-style.mjs"
+    ],
+    "lignes": 9
+  }
+]
