@@ -496,4 +496,8 @@ La décision 4 est lue comme dans la passe précédente. La valeur posée d'un b
 2. Faut-il garder une perte quand la variante atteinte pose autrement une instance exposée (perte d'exposition de l'étude) ? Recommandation : non. Elle ne protège pas le contrat, qui est exact contre la convention, et elle cache 4 653 des 7 497 bascules où Figma documenté ferait autre chose.
 3. Faut-il que l'Exporter publie les champs que l'API de Figma dit surchargés, pour lire une valeur imposée égale à celle de la variante citée ? Recommandation : non. Le renvoi resterait complet (D4), et le cas n'apparaît ni dans Button ni dans Groupe.
 
+#### Réponses du mainteneur
+
+Le mainteneur confirme la lecture de la décision 4. La valeur d'un axe exposé s'écrit une seule fois, dans la variante citée. Il retient les recommandations des questions 1 et 2. La question 3 reste ouverte jusqu'à la capture de `StressTest`, car le composant ne pose encore aucune pièce préfixée. La construction 13 la tranche. Si Figma liste le champ dans `overrides`, l'Exporter lit ce champ, sinon le contrat contredirait la convention au changement d'état. S'il ne le liste pas, la question disparaît. Le reste de la forme est arrêté.
+
 Les outils sont dans `_local/p22/confrontation/` : `lab-b.cjs` (option `convention`), `analyse-f15.cjs` (paire `CONV`), `lancer-conv.sh`, `lancer-conv-mesures.sh`, `mesurer-conv.cjs`, `causes-conv.cjs`, `adverses-b.cjs` (assemblages A13c et A22 à A22d), `graines-conv.cjs`, `cas-conv.cjs` (fabriqué par `fabriquer-cas-conv.cjs`), `mesures-conv.cjs`, `patch-valider15-conv.cjs` et `sorties/conv-*.json`.
