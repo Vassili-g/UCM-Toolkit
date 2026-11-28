@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { comparerConstats, resoudreVariable, verifierDocument } from './generateur/oracle';
-import type { DocumentGenere, Noeud } from './generateur/types';
+import { comparerConstats, resoudreVariable, verifierDocument } from '../../plugin-socle/tests/generateur/oracle';
+import type { DocumentGenere, Noeud } from '../../plugin-socle/tests/generateur/types';
 
 const alias=(id:string)=>({type:'VARIABLE_ALIAS',id});
 const bleu={r:0.13,g:0.38,b:0.79,a:1};

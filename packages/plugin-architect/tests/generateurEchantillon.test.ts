@@ -11,19 +11,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { analyserDocument } from './generateur/double';
-import { lireLesDialectes } from './generateur/dialectes';
-import { attendusDeStructure, generer, tirerSpec } from './generateur/generateur';
-import { comparerConstats, verifierDocument } from './generateur/oracle';
-import { memeEcart } from './generateur/reduction';
-import { FAMILLES, decrireLesEcarts, tirer } from './generateur/tirage';
-import type { Attendu, DocumentGenere } from './generateur/types';
+import { analyserDocument } from './generateur/analyserDocument';
+import { lireLesDialectes } from '../../plugin-socle/tests/generateur/dialectes';
+import { attendusDeStructure, generer, tirerSpec } from '../../plugin-socle/tests/generateur/generateur';
+import { comparerConstats, verifierDocument } from '../../plugin-socle/tests/generateur/oracle';
+import { memeEcart } from '../../plugin-socle/tests/generateur/reduction';
+import { FAMILLES, decrireLesEcarts, tirer } from '../../plugin-socle/tests/generateur/tirage';
+import type { Attendu, DocumentGenere } from '../../plugin-socle/tests/generateur/types';
 
 const GRAINE_DE_L_ECHANTILLON = 1126;
 const NOMBRE_DE_CAS = 52;
 
 test('l’échantillon fixe ne rend aucun écart à l’oracle', async () => {
-  const resultat = await tirer({ graine: GRAINE_DE_L_ECHANTILLON, nombre: NOMBRE_DE_CAS, reduire: true });
+  const resultat = await tirer({ graine: GRAINE_DE_L_ECHANTILLON, nombre: NOMBRE_DE_CAS, reduire: true, analyser: analyserDocument });
   assert.deepEqual(decrireLesEcarts(resultat), [], `graine ${GRAINE_DE_L_ECHANTILLON}`);
   for (const famille of FAMILLES) {
     assert.equal(resultat.familles[famille].tirages, NOMBRE_DE_CAS / 4, famille);

@@ -15,10 +15,10 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { analyserDocument } from '../../../tests/generateur/double';
-import { comparerConstats, verifierDocument } from '../../../tests/generateur/oracle';
-import { reglages } from '../../../tests/generateur/generateur';
-import { FAMILLES, decrireLesEcarts, tirer, type ResultatDuTirage } from '../../../tests/generateur/tirage';
+import { analyserDocument } from '../../../tests/generateur/analyserDocument';
+import { comparerConstats, verifierDocument } from '../../../../plugin-socle/tests/generateur/oracle';
+import { reglages } from '../../../../plugin-socle/tests/generateur/generateur';
+import { FAMILLES, decrireLesEcarts, tirer, type ResultatDuTirage } from '../../../../plugin-socle/tests/generateur/tirage';
 
 export const GRAINE_DU_GENERATEUR = 1729;
 export const NOMBRE_DU_GENERATEUR = 500;
@@ -69,7 +69,7 @@ export async function lancerLeGenerateur(): Promise<void> {
   const nombre = Number(argument('--nombre') ?? NOMBRE_DU_GENERATEUR);
   const reduire = !process.argv.includes('--sans-reduction');
   reglages.ecartsConnus = process.argv.includes('--ecarts-connus');
-  const resultat = await tirer({ graine, nombre, reduire });
+  const resultat = await tirer({ graine, nombre, reduire, analyser: analyserDocument });
   mkdirSync(path.join(DOSSIER_DU_GENERATEUR, 'reduits'), { recursive: true });
   mkdirSync(path.join(DOSSIER_DU_GENERATEUR, 'refus'), { recursive: true });
   for (const ecart of resultat.ecarts) {

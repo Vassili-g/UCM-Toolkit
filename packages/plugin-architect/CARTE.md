@@ -6,7 +6,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 - SPEC.md : ce que le plugin lit, résout et refuse de conclure
 - invariants/ : les invariants du paquet, un fichier par groupe
 - galerie/ : états de l'interface, à 1360 × 800, à 560 × 480 et à 500 × 760 (la galerie `t-constats` : 680 × 1400, qui range aussi `t-constats-noms-longue`), un fichier d'états par domaine dans `etats/`, et comparaison à la maquette de la vue composant
-- tests/ : dont les lois d'écriture (`loiDEcriture`, `loiDEcritureDesNoms`), la loi des imbriqués (`imbriquesParLeKit`), les doubles de Figma, `outils/` (le monde fabriqué et le chargeur de capture de `capture.test.ts`), `nomenclature*.test.ts` pour le code de Nomenclature et `interface/` pour Chromium
+- tests/ : dont les lois d'écriture (`loiDEcriture`, `loiDEcritureDesNoms`), la loi des imbriqués (`imbriquesParLeKit`), les doubles de Figma, `outils/` (le monde fabriqué et le chargeur de capture de `capture.test.ts`), `nomenclature*.test.ts` pour le code de Nomenclature et `interface/` pour Chromium ; `tests/generateur/analyserDocument.ts`, le raccord du générateur commun (`plugin-socle/tests/generateur/`) à l’analyse d’Architect, que `tirer` et `reduire` reçoivent en paramètre
 - galerie/composant/ : Alert à 11 variants et Button à 216, leurs analyses, et le fichier hors UCM de `t-hors`
 - galerie/nomenclature/ : données des états de Nomenclature, joués dans la galerie d'Architect (`etats/nomenclature.cjs`)
 - galerie/recherche/ : fichier d'exemple des états de recherche et de fiche (`t-questions`, `t-terme`, `t-fiche`)

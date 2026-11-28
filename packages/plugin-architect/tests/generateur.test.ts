@@ -1,10 +1,10 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {generer,tirerSpec} from './generateur/generateur';
-import {verifierDocument,comparerConstats} from './generateur/oracle';
-import {analyserDocument} from './generateur/double';
-import {injecter,restaurer,transformer,rendreIllisible,signatureConstats,DEFAUTS,TRANSFORMATIONS,ABSTENTIONS} from './generateur/operateurs';
-import {reduire,signatureEcart} from './generateur/reduction';
+import {generer,tirerSpec} from '../../plugin-socle/tests/generateur/generateur';
+import {verifierDocument,comparerConstats} from '../../plugin-socle/tests/generateur/oracle';
+import {analyserDocument} from './generateur/analyserDocument';
+import {injecter,restaurer,transformer,rendreIllisible,signatureConstats,DEFAUTS,TRANSFORMATIONS,ABSTENTIONS} from '../../plugin-socle/tests/generateur/operateurs';
+import {reduire,signatureEcart} from '../../plugin-socle/tests/generateur/reduction';
 
 test('la graine reconstruit les mêmes données avant toute analyse',()=>{
  for(let i=0;i<15;i++)assert.deepEqual(generer(1729+i,tirerSpec(1729+i,i)),generer(1729+i,tirerSpec(1729+i,i)));
@@ -37,7 +37,7 @@ test('les cinq gestes ont un inverse exact et les cinq transformations gardent l
 test('la réduction conserve son témoin après une nouvelle lecture complète',async()=>{
  const spec=tirerSpec(44,0);spec.nom='Compose';spec.anatomie=['texte'];spec.construction=['direct'];
  const doc=injecter(generer(44,spec),'U1-fill-nu'),constat=(await analyserDocument(doc)).constats.find(c=>c.code==='C25')!;
- assert.ok(constat);const reduction=await reduire(doc,constat);
+ assert.ok(constat);const reduction=await reduire(doc,constat,analyserDocument);
  assert.deepEqual(verifierDocument(reduction.document),[]);assert.ok(reduction.apres.calques<reduction.avant.calques);
  assert.ok(reduction.apres.variables<reduction.avant.variables);
  assert.ok((await analyserDocument(reduction.document)).constats.some(c=>signatureEcart(c)===signatureEcart(constat)));

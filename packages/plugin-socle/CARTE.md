@@ -6,6 +6,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - galerie/ : banc de galerie, sa capture et décalque du thème Figma ; `planche.cjs` et `planche/` : la planche des signaux du langage et la planche des signes, leurs sources et leurs coques
 - lois/ : lois des styles, du gabarit, du manifest et de la galerie, que le test de chaque plugin appelle
 - tests/ : build, manifest, fenêtre, banc et loi des styles, pour un plugin quelconque
+- tests/generateur/ : le générateur commun de composants (modèle, tirage, opérateurs, oracle, réduction, dialectes) et les doubles de Figma neutres (`atelierDeCalques.ts`, `double.ts`) ; l’analyse à juger se passe en paramètre (`Analyseur`), le socle n’importe aucun plugin ; le lanceur ne découvre que les `*.test.ts` de `tests/`, pas ce dossier
 
 ## build/
 - inline-ui.cjs : du bundle et des feuilles de style à un HTML autonome

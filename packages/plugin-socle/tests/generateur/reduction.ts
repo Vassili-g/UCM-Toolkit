@@ -1,7 +1,7 @@
 import type {DocumentGenere} from './types';
 import {copie,dresserCarte,actualiserInventaires} from './modele';
 import {verifierDocument} from './oracle';
-import {analyserDocument} from './double';
+import type {Analyseur} from './double';
 import {attendusDeStructure,informationsPrevues} from './generateur';
 
 const criteres=(c:any)=>Object.fromEntries(Object.entries(c.faits??{}).filter(([k])=>['champ','indice','plageDebut','plageFin','motif','genre','role','attendu','cause','nature'].includes(k)||(['C30','C42'].includes(c.code)&&['titre','message'].includes(k))).map(([k,v])=>[k,typeof v==='string'&&k==='titre'?v.replace(/«[^»]*»/g,''):v]));
@@ -30,7 +30,8 @@ function nettoyer(d:DocumentGenere){
  let change=true;while(change){const n=utilisees.size;for(const v of d.variables)if(utilisees.has(v.id))lire(v.valuesByMode);change=n!==utilisees.size;}
  d.variables=d.variables.filter(v=>utilisees.has(v.id));actualiserInventaires(d);d.oracle=dresserCarte(d,d.oracle.attendus,d.oracle.infos);
 }
-export async function reduire(document:DocumentGenere,temoin:any){
+/** `analyserDocument` est la fonction de jugement du plugin : la réduction relit l'analyse sans la connaître. */
+export async function reduire(document:DocumentGenere,temoin:any,analyserDocument:Analyseur){
  let courant=copie(document),essais=0,refus=0,analyses=0,passes=0;
  const cle=signatureEcart(temoin);const taillesAvant=compter(courant);
  const conserver=async(candidat:DocumentGenere)=>{

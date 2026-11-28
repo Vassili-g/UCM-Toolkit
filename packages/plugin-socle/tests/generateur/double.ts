@@ -1,17 +1,16 @@
 /**
- * Le double de Figma d'un document généré, et son analyse complète.
+ * Le double de Figma d'un document généré, neutre : il ne connaît aucune analyse. Le raccord à l'analyse d'un plugin reste dans ce
+ * plugin (`plugin-architect/tests/generateur/analyserDocument.ts`) et se passe au tirage et à la réduction comme fonction de jugement.
  *
  * Les calques sortent de `atelierDeCalques({ recherches: true, permises: ['getSharedPluginData', 'getSharedPluginDataKeys', 'loadAsync', 'on', 'off'] })` : les enfants, les parents, `findAll`, `findOne`, `findChildren` et
  * `findAllWithCriteria` viennent de l'atelier, et `'findAll' in calque` répond vrai pour un calque à enfants. Le double n'ajoute que ce
  * que le document décrit : une lecture refusée lève à la lecture du champ, `defaultVariant` rend un calque, le maître d'une instance
- * se rend par `getMainComponentAsync`. L'analyse est celle du plugin (`traiterAvec` et `LECTEURS_DE_FIGMA`), relevé et catalogue compris.
+ * se rend par `getMainComponentAsync`.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any -- les doubles de Figma dépassent les types du plugin */
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
-import { oublierLIndexDuDocument } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
 
-import { LECTEURS_DE_FIGMA, reinitialiserLAnalyse, traiterAvec } from '../../src/sandbox/analyse';
-import { atelierDeCalques, collectionFigma, enLectureSeule, portDeTest, variableFigma } from '../figmaDeTest';
+import { atelierDeCalques, collectionFigma, enLectureSeule, portDeTest, variableFigma } from './atelierDeCalques';
 import type { DocumentGenere } from './types';
 
 export function doubleDuDocument(doc: DocumentGenere) {
@@ -95,36 +94,5 @@ export interface ResultatDAnalyse {
   journal: string[];
 }
 
-/** L'analyse complète du document : le dernier message `analyse`, avec le relevé et le catalogue que les lecteurs ont lus. */
-export async function analyserDocument(doc: DocumentGenere): Promise<ResultatDAnalyse> {
-  const { figma, journal } = doubleDuDocument(doc);
-  const globale = globalThis as { figma?: unknown };
-  const precedent = globale.figma;
-  globale.figma = figma;
-  reinitialiserLAnalyse();
-  oublierLIndexDuDocument();
-  const messages: any[] = [];
-  let releve: any;
-  let catalogue: any;
-  try {
-    const traiter = traiterAvec({
-      ...LECTEURS_DE_FIGMA,
-      releve: async (...args: Parameters<typeof LECTEURS_DE_FIGMA.releve>) => {
-        const r = await LECTEURS_DE_FIGMA.releve(...args);
-        if (r.statut === 'lu') releve = r.releve;
-        return r;
-      },
-      catalogue: async (...args: Parameters<typeof LECTEURS_DE_FIGMA.catalogue>) => {
-        catalogue = await LECTEURS_DE_FIGMA.catalogue(...args);
-        return catalogue;
-      },
-    });
-    const debut = performance.now();
-    await traiter({ type: 'analyser', demande: 1 }, { figma, envoyer: (m: any) => messages.push(m), surveillerLeDocument: () => [] } as any);
-    const final = messages.find((m) => m.type === 'analyse');
-    if (!final) throw new Error(`Analyse sans final ${JSON.stringify(messages)}`);
-    return { statut: final.statut, constats: final.constats, releve, catalogue, lecture: final.lecture, causes: final.causes, dureeMs: performance.now() - debut, journal };
-  } finally {
-    globale.figma = precedent;
-  }
-}
+/** La fonction de jugement qu'un plugin fournit : l'analyse complète d'un document généré. */
+export type Analyseur = (doc: DocumentGenere) => Promise<ResultatDAnalyse>;

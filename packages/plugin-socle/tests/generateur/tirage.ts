@@ -9,7 +9,7 @@
  * d'un même rang partent du même composant de base.
  */
 import { graineDe } from '../../../kit/tests/stress/commun/prng';
-import { analyserDocument } from './double';
+import type { Analyseur } from './double';
 import { generer, tirerSpec } from './generateur';
 import { ABSTENTIONS, DEFAUTS, TRANSFORMATIONS, injecter, rendreIllisible, restaurer, signatureConstats, transformer } from './operateurs';
 import { comparerConstats, verifierDocument } from './oracle';
@@ -53,6 +53,8 @@ export interface ResultatDuTirage {
 export interface OptionsDuTirage {
   graine: number;
   nombre: number;
+  /** La fonction de jugement du plugin : l'analyse complète d'un document généré. */
+  analyser: Analyseur;
   /** Réduit chaque écart au plus petit composant. Hors de `npm test`, la réduction relit l'analyse des centaines de fois. */
   reduire?: boolean;
   /** Appelé après chaque cas : le script s'en sert pour écrire son avancement. */
@@ -88,14 +90,14 @@ const compteurs = (): Record<Famille, CompteDeFamille> => ({
 
 /** Les cas d'un tirage, dans l'ordre : le cas `i` suit la famille d'attentes `i % 4`, sur le composant de rang `i / 4`. */
 export async function tirer(options: OptionsDuTirage): Promise<ResultatDuTirage> {
-  const { graine, nombre } = options;
+  const { graine, nombre, analyser: analyserDocument } = options;
   if (!Number.isInteger(graine) || !Number.isInteger(nombre) || nombre < 1) throw new Error('Graine entière et nombre positif requis.');
   const debut = performance.now();
   const resultat: ResultatDuTirage = {
     graine, nombre, dureeMs: 0, familles: compteurs(), ecarts: [], refus: [], cas: [],
     couverture: { anatomies: {}, constructions: {}, dialectes: {}, operations: {}, statuts: {}, attentes: {} },
   };
-  const bases = new Map<number, { doc: DocumentGenere; resultat: Awaited<ReturnType<typeof analyserDocument>> | null }>();
+  const bases = new Map<number, { doc: DocumentGenere; resultat: Awaited<ReturnType<Analyseur>> | null }>();
   const temoins = new Map<string, { doc: DocumentGenere; constat: any }>();
   const compter = (cle: keyof ResultatDuTirage['couverture'], valeurs: readonly string[]) => {
     for (const valeur of valeurs) resultat.couverture[cle][valeur] = (resultat.couverture[cle][valeur] ?? 0) + 1;
@@ -186,7 +188,7 @@ export async function tirer(options: OptionsDuTirage): Promise<ResultatDuTirage>
   if (options.reduire) {
     for (const [id, temoin] of temoins) {
       const ecart = resultat.ecarts.find((e) => e.id === id)!;
-      const r = await reduire(temoin.doc, temoin.constat);
+      const r = await reduire(temoin.doc, temoin.constat, analyserDocument);
       ecart.reduit = { document: r.document, avant: r.avant, apres: r.apres };
     }
   }
