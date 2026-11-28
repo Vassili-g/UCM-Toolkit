@@ -14,6 +14,7 @@ Les cases gardent le numéro de la première version du plan, que d'autres docum
 - Aucun plugin ne contrôle la convention des états (§2.12). Architect signale seul une couleur de pièce du cas 3 (§2.7, case 8.2).
 - Aucun agent ne fait de geste dans Figma. Les gestes du mainteneur sont les cases 1.2 et 1.3, le réexport des composants et la recette sur le Playground.
 - Chaque défaut reçoit un test qui échoue sans sa correction, écrit dans le lot qui le corrige.
+- Un élément a une seule source. Un lot qui a besoin d'une fonction d'un autre fichier l'importe ou l'exporte de son propriétaire, jamais ne la recopie. Le prompt de chaque lot le dit, la relecture du diff le vérifie, et le détecteur de copies (case 1.14) tourne à chaque `npm test` dès qu'il existe.
 - Un texte destiné au designer s'écrit dans la conversation principale, avec la skill `rediger-diagnostics-ucm`. L'implémenteur pose `TODO(texte)` dans le catalogue et le signale.
 - Personne ne lance `test:ui`, ni `npm test` à la racine. Un `verificateur` lance la vérification complète avant chaque commit.
 - Un lot ne commence pas tant que le précédent dont il dépend n'est pas commité. La conversation principale relit le diff, lance `npm run agents:diff` et commite par chemins explicites.
@@ -65,7 +66,7 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
   - Fin : le rejeu de `_local/p22/scripts/exporter.ts` sur une nouvelle capture passe sans `REGLES`.
   - Commandes : `npm run test:paquet -- architect`.
   - Dépend de : rien. Agent : `implementeur`.
-- [ ] 1.1b La capture enregistre les champs de rendu que le §2.14 exige.
+- [x] 1.1b La capture enregistre les champs de rendu que le §2.14 exige. (b32baf3e)
   - Objectif : `PROPRIETES_DE_NOEUD` et `JEUX_DE_SEGMENTS` couvrent chaque propriété que la table de 1.12 classe en champ portable ou en perte : `scaleFactor`, `transform3d`, `scene3d`, `animations`, `manualKeyframeTracks`, `timelines`, `reactions`, `numberOfFixedChildren`, `transformModifiers`, `vectorPaths`, `textPathStartData` et les autres. Sans ce lot, le rejeu ne distingue pas une propriété absente dans Figma d'une propriété que la capture a omise.
   - Fichiers : `packages/plugin-architect/src/sandbox/capture.ts` (`capturerUnNoeud`), `packages/plugin-architect/tests/outils/capture.ts`, `packages/plugin-architect/tests/capture.test.ts`.
   - Test d'abord : chaque champ ajouté fait l'aller-retour capture puis double sur un document inventé.
@@ -117,6 +118,11 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
   - Fichiers : un test découvert dans `packages/plugin-exporter/tests/`, la capture de `StressTest` entrée dans le dépôt (réponse 1 du mainteneur sur le banc).
   - Commandes : `npm run test:paquet -- socle`, `npm run test:paquet -- exporter`.
   - Dépend de : 1.3, 1.8, 1.10. Agent : `implementeur-exigeant`.
+- [ ] 1.14 Détecteur de copies, lancé par `npm test`.
+  - Objectif : un test racine cherche les blocs de code recopiés (au moins 6 lignes significatives identiques après normalisation des espaces, hors commentaires, imports et lignes d'accolades) entre deux fichiers ou dans un même fichier, sous `packages/*/src/`, `packages/*/tests/` et `scripts/`. Les copies déjà présentes forment une liste de référence qui ne peut que rétrécir : une copie nouvelle fait échouer le test avec ses deux emplacements, et une copie disparue doit sortir de la liste. `tests/reglesUniques.test.ts` garde les règles nommées ; ce test attrape les copies que personne n'a encore nommées.
+  - Fichiers : un test dans `tests/`, sa liste de référence, `CONTRIBUTING.md` (règle de travail).
+  - Commandes : `node scripts/run-tests.cjs`.
+  - Dépend de : rien. Agent : `implementeur`.
 
 ## Étape 2. Préalables sur le moteur 14.0
 
