@@ -16,9 +16,9 @@ Le modèle de vérité ne connaît pas le format. Il décrit un composant comme 
 2. Le double de Figma rend ce composant lisible par le moteur.
 3. Le moteur exporte le contrat. Les lois de `packages/plugin-exporter/tests/lois.ts` et la validation du kit s'appliquent à la sortie.
 4. Pour chaque variant de l'hôte, chaque occurrence et chaque combinaison atteignable (axes exposés, état de la pièce), le kit résout la vue par `variant-views.mjs`.
-5. Le comparateur ramène la vue résolue et le rendu du modèle de vérité à un même rendu normalisé : par identité de calque, couleurs et contours par token, visibilité, texte, composant placé.
-6. Un écart sans perte qui le couvre fait échouer l'épreuve. Les deux seules pertes admises sont la sélection non unique et l'appariement ambigu (§2.12 de la forme).
-7. Les constats du dessin que le modèle connaît (mode forcé efficace, `SLOT` rempli, instance exposée, échange vers une pièce) doivent chacun avoir leur perte publiée (§2.13, dernier paragraphe).
+5. Le comparateur ramène la vue résolue et le rendu du modèle de vérité à un même rendu normalisé. Il porte, par identité de calque, les couleurs et contours par token, la visibilité, le texte, le composant placé, la boîte effective (taille, bornes, rotation, opacité), le flux intérieur, les styles typographiques et les effets représentés.
+6. Un écart fait échouer l'épreuve, sauf si une perte prévue au §2.11 ou au §2.14 de la forme le couvre par son chemin et son objet. Les deux seules pertes de résolution d'état admises sont la sélection non unique et l'appariement ambigu (§2.12).
+7. Les constats du dessin que le modèle connaît se vérifient contre le contrat (§2.13, dernier paragraphe). Un mode forcé efficace et un `SLOT` de pièce rempli ont chacun leur perte. Une instance exposée a sa prop complète et sa `source` dans l'API, et reçoit la perte L6 seulement si l'exposition est partielle. Une valeur préférée d'échange exposé qui désigne une pièce reçoit sa perte ; une pièce posée par échange reçoit un renvoi.
 
 Une épreuve qui échoue se réduit au plus petit composant qui échoue encore, comme dans le générateur d'Architect (`reduction.ts`).
 
@@ -32,7 +32,7 @@ Une épreuve qui échoue se réduit au plus petit composant qui échoue encore, 
 | Fabriques de contrats | contrats 15.0 écrits dans les tests du kit, sans fixture | `packages/kit/tests/banc/` | les cas de `codex/cas/` et de `confrontation/cas15.cjs` |
 | Couverture de l'API de Figma | classe chaque propriété des typages, échoue sur une propriété non classée | `packages/plugin-socle/tests/couvertureFigma.test.ts` et sa table | `codex/couverture-relais.cjs`, 1 284 propriétés rapprochées |
 
-Le générateur passe dans le socle, parce que le socle porte le moteur commun aux deux plugins. Architect et l'Exporter l'importent tous les deux. Son double s'appuie sur `atelierDeCalques`, que le générateur d'Architect emploie déjà. Aucun nouveau test des pièces n'emploie `figmaFaux.ts`. Le banc garde ainsi un seul double de Figma pour les composants générés.
+Le générateur passe dans le socle, parce que le socle porte le moteur commun aux deux plugins. Architect et l'Exporter l'importent tous les deux. Le raccord à l'analyse d'Architect reste dans Architect, et le tirage reçoit la fonction de jugement en paramètre : le socle n'importe rien d'Architect. Son double s'appuie sur `atelierDeCalques`, que le générateur d'Architect emploie déjà. Aucun nouveau test des pièces n'emploie `figmaFaux.ts`. Le banc garde ainsi un seul double de Figma pour les composants générés.
 
 Les fabriques du kit existent parce que le kit ne dépend pas du socle. Les lots 3.1 à 3.3 testent le kit avant que le moteur 15.0 existe. Une fabrique écrit un contrat en quelques lignes (`contrat15({ pieces: … })`), et chaque cas nommé y a son contrat attendu, tiré de la forme. Les mutations s'appliquent à ces contrats.
 
@@ -42,9 +42,9 @@ Les fabriques du kit existent parce que le kit ne dépend pas du socle. Les lots
 |---|---|
 | validateur `codex/valider15.cjs` | rien de séparé : ses règles entrent dans `validation-contrat.mjs` (case 3.3) |
 | lecteur `codex/deplier15.cjs`, façade de `codex/preuves-forme.mjs` | rien de séparé : `variant-views.mjs` porte la résolution (case 3.2) |
-| mutations (`codex/mutations*.cjs`, 22 de la confrontation, 73 en tout) | une table de mutations dans `packages/kit/tests/banc/`, chacune avec le refus attendu ; les 2 que le contrat seul ne décide pas vont aux tests du moteur |
+| mutations (`codex/mutations*.cjs`, 58, et 15 de la confrontation, 73 en tout) | une table de mutations dans `packages/kit/tests/banc/`, chacune avec le refus attendu et son autorité ; celles que le JSON seul tranche se jouent dans le kit, celles qui demandent les constats du dessin (mode forcé, `SLOT` rempli, clé exposée, échange, perte de maître, identifiant hors instance) se jouent de bout en bout |
 | 45 cas, 30 assemblages adverses, 22 attentes manuscrites de Codex | des cas nommés dans la langue du modèle, joués de bout en bout ; leur contrat attendu dans les fabriques du kit |
-| 19 constructions de `StressTest` | des cas nommés avant la capture ; puis le rejeu de la capture (question 1) |
+| 25 constructions de `StressTest` | des cas nommés avant la capture, puis le rejeu de la capture (question 1). Les attentes suivent la convention des états, jamais une perte de transfert retirée (constructions 7, 9 et 15). La construction 19, que l'export refuse, vit dans un composant séparé. |
 | générateurs à graine (`opus/gen.cjs`, `codex/fuzz/generer*.cjs`) | des familles du générateur unique |
 | modèle de vérité `identite` | `verite.ts` |
 | témoins de `codex/fuzz/temoins-relais.cjs` | des défauts injectés : un quart des cas de chaque famille, comme dans le générateur d'Architect, pour prouver que le comparateur voit un défaut |
@@ -65,16 +65,11 @@ Le banc tourne d'abord sur le moteur 14.0, sur des composants sans pièce préfi
 
 ## Les lots du banc
 
-Ils remplacent les lots 1.7 et suivants du plan, après validation de cette note.
+Le plan porte les lots du banc, de 1.1b à 1.12, avec leurs fichiers, leurs commandes et leurs dépendances. Un composant généré passe par le double du socle, que le lot 1.8 complète pour les pièces (instances exposées, `componentProperties`, `overrides`, `SLOT`, modes, maîtres, pages, calques masqués). Le lot 1.1b fait enregistrer à la capture d'Architect les champs de rendu du §2.14, avant les captures du mainteneur. La commande `npm run banc:pieces` joue les 5 200 tirages, et la vérification finale du plan la lance.
 
-- 1.7 Déplacer le générateur d'Architect dans le socle, sans changer ce qu'il génère. Les tests d'Architect passent à l'identique. Agent : `implementeur`.
-- 1.8 Le double fait tourner `exportComponent` sur un document généré. Test d'abord : un composant généré sans pièce s'exporte, et la sortie passe les lois. Agent : `implementeur`.
-- 1.9 Le modèle de vérité, le rendu normalisé et le comparateur, avec la réduction. Test d'abord : chaque défaut injecté fait échouer le comparateur. Le banc passe sur le moteur 14.0 pour les familles de composants sans pièce. Agent : `implementeur-exigeant`.
-- 1.10 Les familles de composants à pièces du générateur (exposition, états, échanges, `SLOT`, modes forcés, frères de même nom, sélection double ou absente, imbrication jusqu'à la borne) et les cas nommés, marqués « attendu en 15.0 ». Agent : `implementeur-exigeant`.
-- 1.11 Les fabriques de contrats et la table des mutations, dans le kit. Elles servent les cases 3.1 à 3.3. Agent : `implementeur`.
-- 1.12 La table de couverture de l'API de Figma et son test sur les typages. Agent : `implementeur`.
+## Revue de Codex
 
-Les lots 1.7, 1.11 et 1.12 touchent des fichiers disjoints et peuvent tourner ensemble, deux à la fois.
+Deux agents de Codex ont relu le plan et cette note contre la forme et contre le code. Ils ont relevé 20 défauts, dont 8 bloquants, tous intégrés au plan et à cette note. Les journaux sont dans `_local/p22/revue-plan/`. Un essai y fait tourner `handleExportComponent` sur trois documents générés par le double d'Architect, et les trois sorties 14.0 passent les lois, le schéma et le lecteur.
 
 ## Questions au mainteneur
 
