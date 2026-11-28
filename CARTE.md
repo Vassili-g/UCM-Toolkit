@@ -64,6 +64,7 @@ Procédures qu'un agent charge à la demande.
 - mesurer-prose.mjs : volume de la prose, document et commentaire
 - pins-servis.mjs : versions que le registre sert
 - run-tests.cjs : découvreur de tests
+- banc-pieces.ts : `npm run banc:pieces`, grand tirage du banc des pièces (graine, nombre), rapport dans `_local/banc-pieces/`, sortie en erreur au moindre écart non couvert
 - agents-contexte.mjs : documents à lire avant de modifier un fichier et à relire après, calculés depuis `.agents/domiciles.json`
 - nouveau-sujet.mjs : `npm run sujet`, crée le dossier de recherche d'une piste, son motif au registre, sa ligne du sommaire et le champ `recherche` de `pistes.json`
 - archiver-sujet.mjs : `npm run sujet:archiver`, propose garder, relire ou supprimer pour chaque fichier du dossier d'une piste livrée ; `--figer` réécrit les liens vers un commit
@@ -107,6 +108,7 @@ Les tests du monorepo lui-même.
 - inventaireInvariants.test.ts : accord des fichiers d'invariants avec le code, dans les deux sens
 - textesEcrits.test.mjs : aucun catalogue de textes des plugins ne porte `TODO(texte)`
 - copiesDocumentees.test.ts : copies du code dans la documentation (familles, rendu, version du contrat, nombres)
+- bancPieces.test.ts : le script du banc des pièces écrit son rapport sur un petit tirage
 - copiesDeCode.test.ts : aucun bloc de 6 lignes significatives recopié d'un fichier à l'autre ; la liste `copiesDeCode.reference.json` ne fait que rétrécir
 - pluginsSombres.test.mjs : les trois plugins sont sombres
 - cartes.test.ts : chaque chemin des cartes existe, la section `tests/` liste exactement les tests de `tests/`, et chaque fichier de `scripts/`, skill et définition d'agent y figure

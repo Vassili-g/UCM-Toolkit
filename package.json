@@ -24,6 +24,7 @@
     "build:plugin": "node scripts/construire-plugin.mjs build",
     "galerie:plugin": "node scripts/construire-plugin.mjs galerie",
     "test:paquet": "node scripts/construire-plugin.mjs test",
+    "banc:pieces": "tsx scripts/banc-pieces.ts",
     "stress:f1": "tsx packages/kit/tests/stress/f1-noms/index.ts",
     "stress:rejeu": "tsx packages/kit/tests/stress/rejeu-fichiers/index.ts",
     "recette:architect": "node scripts/construire-plugin.mjs verifier-kit architect && tsx packages/plugin-architect/scripts/recette.ts",

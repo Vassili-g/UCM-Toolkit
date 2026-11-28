@@ -2,14 +2,15 @@
  * Le banc des pièces, premier parcours : un composant généré sans pièce s'exporte, le kit résout chaque variant (`vueExacteDuVariant`),
  * et le comparateur rapproche cette vue du rendu que le modèle de vérité attend, sans contrat de référence.
  *
- * Borne : ce parcours juge le moteur 14.0 sur un composant sans pièce. Les occurrences, les pertes qui couvrent un écart et les tirages
- * viennent avec les sous-lots 1.9b, 1.9c et 1.10 du plan de P22.
+ * Borne : ce parcours juge le moteur 14.0 sur un composant sans pièce. Une occurrence se juge avec le sous-lot 1.10 ; son erreur d'adresse
+ * est testée dans `plugin-socle/tests/comparateurDuBanc.test.ts`.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { comparer } from '../../plugin-socle/tests/generateur/comparateur';
 import { renduLu, variantsDuContrat } from '../../plugin-socle/tests/generateur/lecture';
 import { renduAttendu, variantsDeLHote } from '../../plugin-socle/tests/generateur/verite';
+import { lancerLeBanc, resumerLeBanc } from './aides/banc';
 import { composantDuBanc, exporterLeDocument } from './aides/documentDuBanc';
 
 /** Deux `Label` frères sous la racine : le rang départage leurs identités. L'icône est masquable et la couleur d'un anneau est un contour. */
@@ -85,6 +86,10 @@ test('le comparateur voit un calque manquant, un espacement changé et un texte 
   assert.deepEqual(comparer(attendu, renduLu(autreTexte, variant), []), [{ variant, identite: 'Label#0', champ: 'texte', attendu: 'Exemple', lu: 'Autre texte', normatif: false }]);
 });
 
-test('une occurrence n’a pas de rendu attendu avant les pièces', () => {
-  assert.throws(() => renduAttendu(document(), { variant: 'v', occurrence: { adresse: ['piece'] } }), /occurrence/);
+test('200 tirages à graine fixe : aucun écart non couvert sur les composants sans pièce, les pièces internes comptées à part', async () => {
+  const resultat = await lancerLeBanc({ graine: 1729, nombre: 200 });
+  assert.equal(resultat.juges + resultat.attenduEn15.length, 200);
+  assert.ok(resultat.attenduEn15.length > 0, 'le tirage contient des pièces internes, attendues en 15.0');
+  assert.deepEqual(resumerLeBanc(resultat).filter((l) => !l.startsWith('Banc des pièces') && !l.startsWith('Jugés')), [], 'aucun écart non couvert');
+  assert.equal(resultat.enEcart.length, 0);
 });

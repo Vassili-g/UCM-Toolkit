@@ -786,6 +786,7 @@ const PHRASES_DES_SCRIPTS: Readonly<Record<string, readonly [string, string]>> =
   'build:plugin': ['Construit le kit puis le plugin nommé (palettes, architect ou exporter).', 'AGENTS.md, « Vérification » ; scripts/construire-plugin.mjs'],
   'galerie:plugin': ['Construit le kit puis ouvre la galerie des états du plugin nommé.', 'AGENTS.md, « Vérification » ; scripts/construire-plugin.mjs'],
   'test:paquet': ['Construit le kit puis teste le paquet nommé.', 'AGENTS.md, « Vérification » ; scripts/construire-plugin.mjs'],
+  'banc:pieces': ['Tire des composants générés, les exporte sur le double de Figma et compare le contrat au modèle de vérité ; sort en erreur au moindre écart non couvert, hors de `npm test`.', 'scripts/banc-pieces.ts, commentaire d’en-tête'],
   'stress:f1': ['Lance le harnais de stress test des noms de Nomenclature, hors de `npm test`.', 'packages/kit/tests/stress/f1-noms/index.ts, commentaire d’en-tête'],
   'recette:architect': ['Rejoue une capture Figma de `_local/recettes/` par l’analyse complète d’Architect et la compare à ses constats attendus, hors de `npm test`.', 'packages/plugin-architect/scripts/recette.ts, commentaire d’en-tête'],
   'stress:rejeu': ['Rejoue des fichiers réels dans le mode Tokens et mesure les contrôles, hors de `npm test`.', 'packages/kit/tests/stress/rejeu-fichiers/index.ts, commentaire d’en-tête'],
