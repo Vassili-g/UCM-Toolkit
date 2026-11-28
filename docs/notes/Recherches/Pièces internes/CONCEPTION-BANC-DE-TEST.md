@@ -83,3 +83,7 @@ Les lots 1.7, 1.11 et 1.12 touchent des fichiers disjoints et peuvent tourner en
 | 1 | La capture de `StressTest` (1.3) peut-elle entrer dans le dépôt comme entrée d'un test ? Elle vient d'UCM-Playground et ne contient aucune donnée de client. | Oui, avec une attente écrite par construction, jamais un instantané du contrat. Les captures de Button et de Groupe restent dans `_local/`. |
 | 2 | Combien de tirages dans `npm test` ? | 200 tirages à graine fixe dans `npm test`, comme l'échantillon d'Architect. Les 5 200 tirages tournent par une commande séparée, avant chaque publication. |
 | 3 | Faut-il faire passer le banc sur le moteur 14.0 avant tout changement du moteur ? | Oui. C'est la seule preuve que le banc juge juste avant de juger la 15.0. |
+
+## Réponses du mainteneur
+
+Le mainteneur retient les trois recommandations. La capture de `StressTest` entre dans le dépôt comme entrée d'un test, avec une attente écrite par construction. `npm test` joue 200 tirages à graine fixe, et une commande séparée joue les 5 200 tirages avant chaque publication. Le banc passe sur le moteur 14.0 avant tout changement du moteur.
