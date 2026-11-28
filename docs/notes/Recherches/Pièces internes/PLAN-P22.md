@@ -342,7 +342,7 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
 ## Étape 9. Documents
 
 - [ ] 9.1 Relecture d'ensemble des documents que les lots ont changés : FORMAT.md, CHANGELOG-FORMAT.md, COMPATIBILITE.md, les deux SPEC, les invariants cités, les cartes des paquets touchés, et `CONCEPT.md` §2, dont la phrase « chaque composant qui l'embarque publie ce qu'elle dessine » gagne toutes les variantes et propriétés de la pièce. Conversation principale, avec la skill `relire-le-style` et `npm run agents:diff`.
-- [ ] 9.2 Corriger `pistes.json` : le point « créer un contrat de fixture » vise un contrat fabriqué par un test du kit (F37). Conversation principale.
+- [x] 9.2 Corriger `pistes.json` : le point « créer un contrat de fixture » vise un contrat fabriqué par un test du kit (F37). Conversation principale. (8792fb1c)
 - [ ] 9.3 `docs/guides/POUR-LES-DESIGNERS.md`, chapitre « Préparer un composant », reçoit le texte de la convention des états (§6.2). Conversation principale, avec la skill `rediger-diagnostics-ucm`.
 - [ ] 9.4 FORMAT.md remplace l'exemple de Button par celui du §3.1 de la forme, vérifié contre la sortie du moteur 15.0. Dépend de : 5.8. Conversation principale.
 
