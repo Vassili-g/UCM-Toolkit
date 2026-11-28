@@ -150,7 +150,7 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
 
 ## Étape 3. Format 15.0 dans le kit
 
-- [ ] 3.1 Types et schéma de la 15.0 (§6.2).
+- [x] 3.1 Types et schéma de la 15.0 (§6.2). (9cc57e76)
   - Objectif : `Contract.pieces`, `PieceEntry`, `ChildStructure.piece`, `PieceReference` (`slotPath`, `nodeId`, `variant`, `values`, `view`, `tokens`, `strokes`, `pieces`), `ContractVariant.pieces`, `PieceSource` et `PropMeta.source`, `PieceSample` et `ContractSample.pieces`, `ContractDiagnostic.slotPath`. Le retrait de `sizes` attend 5.9 (règle du plan sur la 14.0) ; 3.1 écrit le schéma 15.0 séparé qui l'interdit. Le JSDoc de chaque champ porte la phrase « Absence » des tables du §2. Les commentaires qui citent le wrapper élu changent.
   - Fichiers : `packages/kit/src/format/types.ts`, `packages/kit/scripts/build-schema.ts`, `packages/kit/schema/` par `npm run schema`.
   - Tests d'abord : `packages/kit/tests/schema.test.ts` refuse un schéma périmé ; un contrat 15.0 des fabriques est accepté par le schéma 15.0, sans fixture dans `fixtures/contrats/` (F37) ; une sortie 14.0 du moteur reste acceptée par le schéma servi.
